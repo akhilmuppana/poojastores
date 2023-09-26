@@ -1,13 +1,25 @@
-FROM mcr.microsoft.com/dotnet/sdk:3.1 as build
+# Use the .NET SDK image as the base image
+FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
+
+# Set the working directory
 WORKDIR /app
+
+# Copy the project file and restore the dependencies
 COPY *.csproj ./
 RUN dotnet restore
 
+# Copy the rest of the files and build the app
 COPY . ./
 RUN dotnet publish -c Release -o out
 
-FROM mcr.microsoft.com/dotnet/core/aspnet:3.1
+# Use the .NET Runtime image as the final image
+FROM mcr.microsoft.com/dotnet/runtime:6.0 AS runtime
+
+# Set the working directory
 WORKDIR /app
-COPY --from=build /app/out .
-EXPOSE 80
-ENTRYPOINT ["dotnet" , "PoojaStores.dll" ]
+
+# Copy the output from the build stage
+COPY --from=build /app/out ./
+
+# Set the entrypoint to run the app
+ENTRYPOINT ["dotnet", "PoojaStores.dll"]
